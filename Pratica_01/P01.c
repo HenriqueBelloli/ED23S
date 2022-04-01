@@ -123,8 +123,8 @@ int main(int argc, const char *argv[])
 
         if (argc != 3)
         {
-            // printf("Quantidade de parametros invalida\n");
-            // return 0;
+             printf("Quantidade de parametros invalida\n");
+             return 0;
         }
 
         int i = 0;
@@ -134,8 +134,8 @@ int main(int argc, const char *argv[])
         }
 
     // Abre os arquivos.
-        FILE *arquivoLeitura = fopen("C:\\Teste\\entrada06.txt", "r");
-        FILE *arquivoEscrita = fopen("C:\\Teste\\saida06.txt", "w");
+        FILE *arquivoLeitura = fopen(argv[1], "r");
+        FILE *arquivoEscrita = fopen(argv[2], "w");
 
         if (arquivoLeitura == NULL)
         {
@@ -193,9 +193,6 @@ int main(int argc, const char *argv[])
         fclose(arquivoLeitura);
         fclose(arquivoEscrita);
         printf("\nLog: Arquivos fechados!\n\n");
-
-
-    imprimirPilhaEstatica(&pilha);
 
     return 0;
 }
