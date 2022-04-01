@@ -12,9 +12,7 @@
         int topo;
     } PilhaEstatica;
 
-// **************************************************
-// * Definição dos métodos de manipulação da struct *
-// **************************************************
+
     void inicializarPilhaEstatica(PilhaEstatica *p)
     {
         p->topo = 0;
@@ -79,25 +77,28 @@
         printf("]\n");
     }
 
-    int decimalBinarioConverter(int numero)
-    {
-        char numeroBinario[10];
-        int contador, retorno;
+    int decimalBinarioConverter(int numero){
+        int retorno = 0, multiplicador = 1, resto, convertido;
+        
+        while(numero > 0){
+            // Obtém o resto da divisão
+                resto = (numero % 2);
+            
+            // Desloca o número para a esquerda para que cada digito
+            // fique na posição devida, já que a leitura deve ser ao contrário.
+            // Como os números a direita serão 'zeros' o valor já contido no retorno não é afetado.
+                convertido = (resto * multiplicador);
 
-        while(numero > 0)
-        {
-            // obtém o resto da divisão de num por 2
-            numeroBinario[contador] = numero % 2;
-            contador++;
-            numero = numero / 2;
-        }
+            retorno += convertido;
+            numero = numero/2;
 
-       
+            // aumenta uma casa na variável de deslocamento
+                multiplicador *= 10;
+        };
 
-        numeroBinario[contador] = '\0';
-        retorno = atoi(numeroBinario);
         return retorno;
     }
+
 
 int main(int argc, const char *argv[])
 {
@@ -158,15 +159,13 @@ int main(int argc, const char *argv[])
             int tam = tamanhoPilhaEstatica(&pilha);
             
             for(int i = 0; i < tam; i++) {
-                fprintf(arquivoEscrita, "%d\n", topoPilhaEstatica(&pilha));
+                fprintf(arquivoEscrita, "%d\n", decimalBinarioConverter(topoPilhaEstatica(&pilha)));
                 desempilharPilhaEstatica(&pilha);
-                imprimirPilhaEstatica(&pilha);
             }
 
         }else{
             fprintf(arquivoEscrita, "%s", "Arquivo inválido!");
         }
-
 
     // Fecha os arquivos
         fclose(arquivoLeitura);
@@ -175,7 +174,7 @@ int main(int argc, const char *argv[])
 
 
 imprimirPilhaEstatica(&pilha);
-printf("%d", decimalBinarioConverter(2));
+
     //*******************conteudo de exemplo **********
     /*
         char ch;
