@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
+
 #define TAMANHO 10
 
 // ***********************
@@ -62,7 +64,7 @@
 
     void LimparPilhaEstatica(PilhaEstatica *p)
     {
-        int i, tamanho = tamanhoPilhaEstatica(p);
+        int i, tamanho = tamanhoPilhaEstatica(p)-1;
         for( i = 0; i < tamanho; i++) {
             desempilharPilhaEstatica(p);
         }
@@ -75,6 +77,19 @@
             printf("%d ", p->vetor[i]);
         }
         printf("]\n");
+    }
+
+    bool validarEntrada(char *texto){
+        int contador;
+
+        for (contador = 0; texto[contador] != '\0'; contador++){
+            
+            if (!isdigit(texto[contador])){
+                return(false);
+            }
+        }
+
+        return (true);
     }
 
     int decimalBinarioConverter(int numero){
@@ -119,8 +134,8 @@ int main(int argc, const char *argv[])
         }
 
     // Abre os arquivos.
-        FILE *arquivoLeitura = fopen("C:\\Teste\\entrada01.txt", "r");
-        FILE *arquivoEscrita = fopen("C:\\Teste\\saida01.txt", "w");
+        FILE *arquivoLeitura = fopen("C:\\Teste\\entrada06.txt", "r");
+        FILE *arquivoEscrita = fopen("C:\\Teste\\saida06.txt", "w");
 
         if (arquivoLeitura == NULL)
         {
@@ -142,23 +157,30 @@ int main(int argc, const char *argv[])
     // le o conteudo
         int numero;
         bool arquivoValido = true;
+        char linha[50];
 
         while (!feof(arquivoLeitura))
         {
-            fscanf(arquivoLeitura, "%d", &numero);
-            printf("%d", numero);
 
+            fscanf(arquivoLeitura, " %[^\n]s", linha);
+            printf("%s \n", linha);
+
+            if (!validarEntrada(linha)){
+                arquivoValido = false;
+                LimparPilhaEstatica(&pilha);
+                break;
+            }
+
+            int numero = atoi(linha);
             empilharPilhaEstatica(&pilha, numero);
         }
 
-    // converte os números para binário e escreve no arquivo de saída.
-        int contador;
-        
+    // Se o conteúdo é valido, então converte os números para binário e escreve no arquivo de saída.
         if (arquivoValido){
-            
+            int contador;
             int tam = tamanhoPilhaEstatica(&pilha);
             
-            for(int i = 0; i < tam; i++) {
+            for(contador = 0; contador < tam; contador++) {
                 fprintf(arquivoEscrita, "%d\n", decimalBinarioConverter(topoPilhaEstatica(&pilha)));
                 desempilharPilhaEstatica(&pilha);
             }
@@ -173,21 +195,7 @@ int main(int argc, const char *argv[])
         printf("\nLog: Arquivos fechados!\n\n");
 
 
-imprimirPilhaEstatica(&pilha);
+    imprimirPilhaEstatica(&pilha);
 
-    //*******************conteudo de exemplo **********
-    /*
-        char ch;
-        while(!feof(entrada)) {
-            // obtendo caracter do arquivo de entrada
-            ch = fgetc(entrada);
-            // escrever esse caracter no arquivo de saida (que vai ser criado)
-            fprintf(saida, "%c", ch);
-        }
-
-        fclose(entrada);
-        fclose(saida);
-        // chamar o destrutor da pilha dinamica
-     */
     return 0;
 }
