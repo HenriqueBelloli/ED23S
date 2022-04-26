@@ -47,7 +47,7 @@ void imprimirPilhaEstatica(PilhaEstatica *p) {
 }
 
 // * insercao (empilha/push)
-void empilharPilhaEstatica(PilhaEstatica *pilha, int x) {
+void push(PilhaEstatica *pilha, int x) {
 // se a pilha nao estiver cheia:
   if(!estaCheiaPilhaEstatica(pilha)) {
     //     add o numero (x) na posicao indexada pelo topo
@@ -60,7 +60,7 @@ void empilharPilhaEstatica(PilhaEstatica *pilha, int x) {
 }
 
 // remocao (desempilha/pop)
-void desempilharPilhaEstatica(PilhaEstatica *pilha) {
+void pop(PilhaEstatica *pilha) {
   // se a pilha nao esta vazia:
   if(!estaVaziaPilhaEstatica(pilha)){
     // (opcional): copiar o valor do vetor[topo] em um aux
@@ -101,7 +101,7 @@ int main(int argc, const char * argv[]) {
   int top;
 
   for(int k = 0; k < 7; k++){
-    empilharPilhaEstatica(&pilha, insercao[k]);
+    push(&pilha, insercao[k]);
     imprimirPilhaEstatica(&pilha);
     top = topoPilhaEstatica(&pilha);
     printf("Topo = %d\n", top);
@@ -111,10 +111,10 @@ int main(int argc, const char * argv[]) {
   }
 
   for(int i = 0; i < tam + 1; i++) {
-    desempilharPilhaEstatica(&pilha);
+    pop(&pilha);
     imprimirPilhaEstatica(&pilha);
   }
-  empilharPilhaEstatica(&pilha, 42);
+  push(&pilha, 42);
   imprimirPilhaEstatica(&pilha);
 
   return 0;
