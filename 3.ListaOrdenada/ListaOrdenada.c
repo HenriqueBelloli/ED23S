@@ -24,7 +24,7 @@ bool estaVaziaListaOrdenada(ListaOrdenada *lista){
     return (retorno);
 }
 
-bool tamanhoVaziaListaOrdenada(ListaOrdenada *lista){
+bool tamanhoListaOrdenada(ListaOrdenada *lista){
     return (lista->qtdElementos);
 }
 
