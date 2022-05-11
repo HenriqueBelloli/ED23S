@@ -8,21 +8,26 @@
 // getline strtok strsplit
 //https://c-for-dummies.com/blog/?p=1112
 //https://www.cplusplus.com/reference/cstring/strtok/
-    typedef struct {
+
+
+
+    typedef struct Registro{
         int chave;
         char nome[100];
-        char sexo;
+        char sexo[1];
         int idade;
         double peso;
         double altura;
         char telefone[15];
     } Registro;
 
+    typedef struct Registro* PtrRegistro;
+    
     typedef struct NoLista* PtrNoLista;
 
     typedef struct  NoLista{
         int chave;
-        Registro dados;
+        PtrRegistro dados;
         PtrNoLista proximo;
         PtrNoLista anterior;
     } NoLista;
@@ -53,22 +58,23 @@ bool tamanhoListaOrdenada(ListaOrdenada *lista){
     return (lista->qtdElementos);
 }
 
-void imprimeRegistro(Registro reg, FILE *arq){
-    fprintf(arq, "%s", "Elemento vamos imprimir!");
+void imprimeRegistro(PtrRegistro reg, FILE *arq){
+    fprintf(arq, "{%d,%s,%s,%d,%.2lf,%.2lf,%s}\n", reg->chave, reg->nome, reg->sexo, reg->idade, reg->peso, reg->altura, reg->telefone);
 }
 
-void imprimeListaOrdenada(ListaOrdenada *lista){
+void imprimeListaOrdenada(ListaOrdenada *lista, FILE *arq){
     printf("Lista =[");
     PtrNoLista aux;
 
     for(aux = lista->cabeca->proximo; aux != lista->cabeca; aux=aux->proximo){
         printf("%d ", aux->chave);
+        imprimeRegistro(aux->dados, arq);
     }
     printf("]\n");
 
 }
 
-void imprimeListaOrdenadaDesc(ListaOrdenada *lista){
+void imprimeListaOrdenadaDesc(ListaOrdenada *lista, FILE *arq){
     printf("Lista =[");
     PtrNoLista aux;
 
@@ -79,9 +85,10 @@ void imprimeListaOrdenadaDesc(ListaOrdenada *lista){
 
 }
 
-void inserirListaOrdenada(ListaOrdenada *lista, int idChave, Registro reg){
+void inserirListaOrdenada(ListaOrdenada *lista, int idChave, PtrRegistro reg){
     PtrNoLista novo = malloc(sizeof(NoLista));
     novo->chave = idChave;
+    novo->dados = reg;
 
     if (estaVaziaListaOrdenada(lista)){
         novo->proximo = lista->cabeca;
@@ -162,7 +169,7 @@ void pesquisarListaOrdenada(ListaOrdenada *lista, int valor, FILE *arq){
     if(aux->proximo == lista->cabeca || aux->proximo->chave > valor){
         fprintf(arq, "%s", "Elemento não encontrado!");
     }else{
-        imprimeRegistro(aux->proximo->dados, arq);
+       imprimeRegistro(aux->proximo->dados, arq);
     }
 }
 
@@ -189,33 +196,47 @@ bool validarConteudo(char *texto){
     return true;
 }
 
-bool lerLinha(char *texto, Registro *registro){
+Registro* carregarRegistro(char *str){
 
-    char * corte;
-    corte = strtok (texto, "{");
+    //Verifica se existe o número correto de parâmetros e chaves de fechamento.
+        int contador, parametros = 0;
 
-    corte = strtok (texto, ",");
-    registro->chave = atoi(corte);
+        for(contador = 0; contador < strlen(str); contador++){
+            if (str[contador] == ',') parametros++;
+        }
 
-    corte = strtok (texto, ",");
-    strcpy(registro->nome, corte);
+        if(parametros != 6 || str[strlen(str)-1] != '}'){
+            return NULL;
+        }
 
-    corte = strtok (texto, ",");
-    registro->sexo = corte[0];
+    // Fatia a linha nos parâmetros desejados
+        char *valores[7];
+        char *pch;
+        contador = 0;
 
-    corte = strtok (texto, ",");
-    registro->idade = atoi(corte);
+        pch = strtok (str,",");
+        while (pch != NULL)
+        {
+            valores[contador] = pch;
+            pch = strtok (NULL, ",");
+            contador++;
+        }
 
-    corte = strtok (texto, ",");
-    registro->peso = atof(corte);
+    //Cria objeto para registro
+        Registro* registro = (Registro*) malloc(sizeof(Registro));
 
-    corte = strtok (texto, ",");
-    registro->altura = atof(corte);
+        pch = strtok (valores[0],"{"); //Remove o caractere de abertura do código
+        registro->chave = atoi(pch);
 
-    corte = strtok (texto, "}");
-    strcpy(registro->telefone, corte);
+        strcpy(registro->nome, valores[1]);
+        strcpy(registro->sexo, valores[2]);
+        registro->idade = atoi(valores[3]);
+        registro->peso = atof(valores[4]);
+        registro->altura = atof(valores[5]);
+        pch = strtok (valores[6],"}");
+        strcpy(registro->telefone, pch);
 
-    return true;
+    return registro;
 }
 
 int main(int argc, const char * argv[]){
@@ -264,10 +285,11 @@ int main(int argc, const char * argv[]){
 
             if(linha[0] == '{'){
                 //Inicia a leitura de um novo registro.
-                Registro novoRegistro;
+                PtrRegistro novoRegistro = NULL;
+                novoRegistro = carregarRegistro(linha);
 
-                if(lerLinha(linha, &novoRegistro)){
-                    inserirListaOrdenada(&lista, 1, novoRegistro);
+                if(novoRegistro != NULL){
+                    inserirListaOrdenada(&lista, novoRegistro->chave, novoRegistro);
                 }else{
                     arquivoValido = false;
                     break;
@@ -275,12 +297,12 @@ int main(int argc, const char * argv[]){
 
             }else if(linha[0] == '1'){
                 //Comando para impressão na ordem crescente dos registro
-                imprimeListaOrdenada(&lista);
+                imprimeListaOrdenada(&lista, arquivoEscrita);
                 break;
 
             }else if(linha[0] == '2'){
                 //Comando para impressão na ordem decrescente dos registros
-                imprimeListaOrdenadaDesc(&lista);
+                imprimeListaOrdenadaDesc(&lista, arquivoEscrita);
                 break;
 
             }else if(linha[0] == '3'){
