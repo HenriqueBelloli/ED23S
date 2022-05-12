@@ -5,15 +5,9 @@
 
 // Definição das estruturas
 //----------------------------
-// getline strtok strsplit
-//https://c-for-dummies.com/blog/?p=1112
-//https://www.cplusplus.com/reference/cstring/strtok/
-
-
-
     typedef struct Registro{
         int chave;
-        char nome[100];
+        char nome[200];
         char sexo[1];
         int idade;
         double peso;
@@ -22,7 +16,7 @@
     } Registro;
 
     typedef struct Registro* PtrRegistro;
-    
+
     typedef struct NoLista* PtrNoLista;
 
     typedef struct  NoLista{
@@ -40,7 +34,6 @@
 // Definição dos métodos
 //----------------------------
 void iniciaListaOrdenada(ListaOrdenada *lista){
-
     lista->cabeca = malloc(sizeof(NoLista));
     lista->cabeca->chave = (-1);
     lista->cabeca->proximo = lista->cabeca;
@@ -80,6 +73,7 @@ void imprimeListaOrdenadaDesc(ListaOrdenada *lista, FILE *arq){
 
     for(aux = lista->cabeca->anterior; aux != lista->cabeca; aux=aux->anterior){
         printf("%d ", aux->chave);
+        imprimeRegistro(aux->dados, arq);
     }
     printf("]\n");
 
@@ -225,7 +219,7 @@ Registro* carregarRegistro(char *str){
     //Cria objeto para registro
         Registro* registro = (Registro*) malloc(sizeof(Registro));
 
-        pch = strtok (valores[0],"{"); //Remove o caractere de abertura do código
+        pch = strtok (valores[0],"{"); //Remove o caractere de abertura de chave
         registro->chave = atoi(pch);
 
         strcpy(registro->nome, valores[1]);
@@ -233,7 +227,7 @@ Registro* carregarRegistro(char *str){
         registro->idade = atoi(valores[3]);
         registro->peso = atof(valores[4]);
         registro->altura = atof(valores[5]);
-        pch = strtok (valores[6],"}");
+        pch = strtok (valores[6],"}"); //Remove o caractere de fechamento de chave
         strcpy(registro->telefone, pch);
 
     return registro;
@@ -244,15 +238,15 @@ int main(int argc, const char * argv[]){
     // Valida se recebeu os parâmetros necessários.
         if (argc != 3)
         {
-        //     printf("Quantidade de parametros invalida\n");
-        //     return 0;
+            printf("Quantidade de parametros invalida\n");
+            return 0;
         }
 
     // Abre os arquivos.
-        //FILE *arquivoLeitura = fopen(argv[1], "r");
-        //FILE *arquivoEscrita = fopen(argv[2], "w");
-        FILE *arquivoLeitura = fopen("C:\\teste\\entrada01.txt", "r");
-        FILE *arquivoEscrita = fopen("C:\\teste\\saida01.txt", "w");
+        FILE *arquivoLeitura = fopen(argv[1], "r");
+        FILE *arquivoEscrita = fopen(argv[2], "w");
+        //FILE *arquivoLeitura = fopen("C:\\teste\\entrada01.txt", "r");
+        //FILE *arquivoEscrita = fopen("C:\\teste\\saida01.txt", "w");
         if (arquivoLeitura == NULL)
         {
             printf("Erro ao abrir o arquivo para leitura!\n");
@@ -273,9 +267,9 @@ int main(int argc, const char * argv[]){
     Registro dadosPessoa;
 
     // le o conteudo
-        int numero;
+        char linha[200];
         bool arquivoValido = true;
-        char linha[100];
+        int  aux = 0;
 
         while (!feof(arquivoLeitura))
         {
@@ -307,7 +301,9 @@ int main(int argc, const char * argv[]){
 
             }else if(linha[0] == '3'){
                 //consulta se um determinado paciente existe ou não nos registros da clínica
-                pesquisarListaOrdenada(&lista, 1, arquivoEscrita);
+                fscanf(arquivoLeitura, " %[^\n]s", linha);
+                aux = atoi(linha);
+                pesquisarListaOrdenada(&lista, aux, arquivoEscrita);
                 break;
 
             }else if(linha[0] == '\n'){
@@ -328,35 +324,10 @@ int main(int argc, const char * argv[]){
             fprintf(arquivoEscrita, "%s", "Arquivo inválido!");
         }
 
-
-
-
-// imprimeListaOrdenada(&lista);
-// inserirListaOrdenada(&lista, 10, dadosPessoa);
-// imprimeListaOrdenada(&lista);
-// inserirListaOrdenada(&lista, 4, dadosPessoa);
-// imprimeListaOrdenada(&lista);
-// inserirListaOrdenada(&lista, 15, dadosPessoa);
-// imprimeListaOrdenada(&lista);
-// inserirListaOrdenada(&lista, 22, dadosPessoa);
-// imprimeListaOrdenada(&lista);
-// inserirListaOrdenada(&lista, 8, dadosPessoa);
-// imprimeListaOrdenada(&lista);
-// inserirListaOrdenada(&lista, 6, dadosPessoa);
-// imprimeListaOrdenada(&lista);
-// removerListaOrdenada(&lista, 15);
-// imprimeListaOrdenada(&lista);
-// imprimeListaOrdenadaDesc(&lista);
-
-// pesquisarListaOrdenada(&lista, 41, arquivoEscrita);
-// limparListaOrdenada(&lista);
-// imprimeListaOrdenada(&lista);
-
     // Fecha os arquivos
         fclose(arquivoLeitura);
         fclose(arquivoEscrita);
         printf("\nLog: Arquivos fechados!\n");
 
-    printf("NFT é Print screen com qr code!\n");
     return 0;
 }
