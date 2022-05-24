@@ -245,8 +245,7 @@ int main(int argc, const char * argv[]){
     // Abre os arquivos.
         FILE *arquivoLeitura = fopen(argv[1], "r");
         FILE *arquivoEscrita = fopen(argv[2], "w");
-        //FILE *arquivoLeitura = fopen("C:\\teste\\entrada01.txt", "r");
-        //FILE *arquivoEscrita = fopen("C:\\teste\\saida01.txt", "w");
+
         if (arquivoLeitura == NULL)
         {
             printf("Erro ao abrir o arquivo para leitura!\n");
@@ -267,7 +266,7 @@ int main(int argc, const char * argv[]){
     Registro dadosPessoa;
 
     // le o conteudo
-        char linha[200];
+        char linha[300];
         bool arquivoValido = true;
         int  aux = 0;
 
