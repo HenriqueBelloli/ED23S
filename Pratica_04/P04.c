@@ -4,231 +4,229 @@
 #include <string.h>
 
 // Definição das estruturas
-//----------------------------
     typedef struct NoArvore *PtrNoArvore;
 
-    typedef struct NoArvore
-    {
+    typedef struct NoArvore {
         char *chave;
+        int ocorrencias[100];
         PtrNoArvore direita;
         PtrNoArvore esquerda;
     } NoArvore;
+//----------------------------
 
 // Definição dos métodos
-//----------------------------
-void iniciaArvoreBinaria(PtrNoArvore *r)
-{
-    (*r) = NULL;
-}
-
-bool estaVaziaArvoreBinaria(PtrNoArvore *r)
-{
-    return ((*r) == NULL);
-}
-
-bool inserirArvoreBinaria(PtrNoArvore *no, char *valor){
-    // clausulas base (true, false)
-    // 1. NULL (ponto de inserção)
-    // Toda vez que achar um NULL é onde vamos inserir o novo elemento:
-    if ((*no) == NULL)
+    void iniciaArvoreBinaria(PtrNoArvore *r)
     {
-        (*no) = malloc(sizeof(NoArvore));
-        (*no)->chave = (char*) malloc(sizeof(char)*strlen(valor));
-        strcpy((*no)->chave, valor);
-        (*no)->direita = NULL;
-        (*no)->esquerda = NULL;
-        return (true);
+        (*r) = NULL;
     }
-    // 2. no que já possui o valor que eu quero inserir
-    int comp=strcmp((*no)->chave, valor);
-    int cpm2 = strcmp(valor,(*no)->chave);
-    if (strcmp((*no)->chave, valor) == 0)
-        return (false); // warning
 
-    // clausula recursiva
-    if (strcmp(valor, (*no)->chave) == 1)
-    {
-        return (inserirArvoreBinaria(&(*no)->direita, valor));
+    bool estaVaziaArvoreBinaria(PtrNoArvore *r){
+        return ((*r) == NULL);
     }
-    else
-    {
-        return (inserirArvoreBinaria(&(*no)->esquerda, valor));
+
+    bool inserirArvoreBinaria(PtrNoArvore *no, char *valor){
+
+        if ((*no) == NULL){
+            (*no) = malloc(sizeof(NoArvore));
+            (*no)->chave = (char*) malloc(sizeof(char)*strlen(valor));
+            strcpy((*no)->chave, valor);
+            (*no)->ocorrencias[0]=0;
+            (*no)->direita = NULL;
+            (*no)->esquerda = NULL;
+            return (true);
+        }
+
+        if (strcmp((*no)->chave, valor) == 0){
+            return (false);
+        }else if (strcmp(valor, (*no)->chave) == 1){
+            return (inserirArvoreBinaria(&(*no)->direita, valor));
+        } else {
+            return (inserirArvoreBinaria(&(*no)->esquerda, valor));
+        }
     }
-}
 
-// print, dir, esq
-// PREORDEM
-// 1 Printa
-// 2 PREORDEM(Esq)
-// 3 PREORDEM(Dir)
-void PreOrdemArvoreBinaria(PtrNoArvore *no)
-{
-    if ((*no) == NULL)
-        return; // clausula base
-    printf("%s ", (*no)->chave);
-    PreOrdemArvoreBinaria(&(*no)->esquerda);
-    PreOrdemArvoreBinaria(&(*no)->direita);
-}
+    void EmOrdemArvoreBinaria(PtrNoArvore *no, FILE *arq){
 
-void PreOrdemPrincipal(PtrNoArvore *no)
-{
-    printf("PreOrdem = { ");
-    PreOrdemArvoreBinaria(&(*no));
-    printf("}\n");
-}
+        if ((*no) == NULL){
+            return;
+        }
 
-// EMORDEM
-//  1 EMORDEM(Esq)
-//  2 Printa
-//  3 EMORDEM(Dir)
-void EmOrdemArvoreBinaria(PtrNoArvore *no)
-{
-    if ((*no) == NULL)
-        return; // clausula base
-    EmOrdemArvoreBinaria(&(*no)->esquerda);
-    printf("%s ", (*no)->chave);
-    EmOrdemArvoreBinaria(&(*no)->direita);
-}
+        EmOrdemArvoreBinaria(&(*no)->esquerda, arq);
 
-void EmOrdemPrincipal(PtrNoArvore *no)
-{
-    printf("EmOrdem = { ");
-    EmOrdemArvoreBinaria(&(*no));
-    printf("}\n");
-}
+        printf("%s", (*no)->chave);
+        fprintf(arq, "%s", (*no)->chave);
 
-// POSORDEM
-// 1. POSORDEM(Esq)
-// 2. POSORDEM(Dir)
-// 3. Printa
+        int i = 0;
+        while((*no)->ocorrencias[i] != 0){
+            printf(",%d", (*no)->ocorrencias[i]);
+            fprintf(arq, ",%d", (*no)->ocorrencias[i]);
+            i++;
+        }
+        printf("\n");
+        fprintf(arq, "\n");
 
-// ---------------------------------------
-// ---------------------------------------
-
-bool pesquisaArvoreBinaria(PtrNoArvore *no, char *valor){
-    // clausulas base - recursao
-    // se o elemento nao existir -> false [ ptr == NULL] [X]
-    if ((*no) == NULL)
-        return false;
-
-    // se existir o elemento -> true [X]
-    if (strcmp((*no)->chave, valor) == 0)
-        return (true);
-
-    // recursiva
-    if (strcmp(valor, (*no)->chave) == 1){
-        return (pesquisaArvoreBinaria(&(*no)->direita, valor));
-    }else{ // <
-        return (pesquisaArvoreBinaria(&(*no)->esquerda, valor));
+        EmOrdemArvoreBinaria(&(*no)->direita, arq);
     }
-}
 
-PtrNoArvore pegarMaiorElemento(PtrNoArvore *no)
-{
-    // vai ter que andar p direita, até que ...
-    // o ultimo nó aponte para nulo (dir)
-    while ((*no)->direita != NULL)
-    {
-        (*no) = (*no)->direita;
-    }
-    // terminou o while, (*no) contém o maior elemento
-    // esse cara é quem a gente precisa retornar
-    PtrNoArvore ret = (*no);
-    (*no) = (*no)->esquerda; // NULL ou não NULL
-    return (ret);
-}
+    PtrNoArvore pesquisaArvoreBinaria(PtrNoArvore *no, char *valor){
 
-void destruirArvoreBinaria(PtrNoArvore *no){
-
-    if((*no) != NULL){
-        destruirArvoreBinaria(&(*no)->esquerda);
-        destruirArvoreBinaria(&(*no)->direita);
-        free(no);
-        (*no) = NULL;
-    }
-}
-
-char* extrairPalavra(int *posicaoInicial, int *posicaoFinal, char* frase){
-
-	int i, indice;
-	char *palavraretorno;
-
-    palavraretorno = (char*) malloc(sizeof(char)*50);
-    indice=0;
-
-	for(i = *posicaoInicial; i < *posicaoFinal && (indice < 49); i++){
-
-        //Verifica se o caractere é valido A-Z ou 0-9
-        //Se não for válido e já obteve algum conteúdo válido finaliza palavra
-            if ( ((frase[i] >= 'A' && frase[i] <= 'z') || (frase[i] >= '0' && frase[i] <= '9')) ){
-                palavraretorno[indice] = frase[i];
-                indice++;
-            }else if(indice > 0){
-                break;
-            }
-	}
-
-	// Verifica se encontrou alguma palavra
-        if(indice == 0){
+        if ((*no) == NULL)
             return NULL;
+
+        if (strcmp((*no)->chave, valor) == 0)
+            return ((*no));
+
+        if (strcmp(valor, (*no)->chave) == 1){
+            return (pesquisaArvoreBinaria(&(*no)->direita, valor));
+        }else{ 
+            return (pesquisaArvoreBinaria(&(*no)->esquerda, valor));
         }
-			
-	// Deve ter no mínimo 3 caracteres para considerar como palavra. Se não for o caso, tenta novamente.
-        if(indice < 3){
-            return extrairPalavra(&i, &*posicaoFinal, frase);
+    }
+
+    void destruirArvoreBinaria(PtrNoArvore *no){
+
+        if((*no) != NULL){
+            destruirArvoreBinaria(&(*no)->esquerda);
+            destruirArvoreBinaria(&(*no)->direita);
+            free((*no));
         }
-			palavraretorno[indice] = '\0';
-    // Atualiza até onde fez a leitura
-	//*posicaoInicial = i;
-	*posicaoFinal = i;	
+    }
 
-    //palavraretorno = (char*) realloc(palavraretorno, sizeof(char)*indice);
+    char* extrairPalavra(int *posicaoInicial, int *posicaoFinal, char* frase){
 
-	// char *palavraretorno;
-    // palavraretorno = (char*) malloc(sizeof(char)*indice);
-    // strcpy(palavraretorno, aux);
-    // free(aux);
-	return palavraretorno;
-}
+        int i, indice = 0;
+        char *palavraretorno = (char*) malloc(sizeof(char)*50);
 
-bool carregarTermos(char *linha, PtrNoArvore *no){
-  
-	int inicioLeitura, fimLeitura;
-	char* palavra;
+        for(i = *posicaoInicial; i < *posicaoFinal && (indice < 49); i++){
 
-    //Verifica se a linha está no padrão esperado.
-        inicioLeitura = 1;
-        fimLeitura = 7;
-        palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
-        int resu =strcmp(palavra, "termos");
-
-        if( linha[0] != '<' || 
-            linha[strlen(linha)-1] != '>' ||
-            0 != 0){
-
-            printf("Erro: Estrutura do arquivo inconsistente\n");
-            return false;
+            //Verifica se o caractere é valido A-Z ou 0-9
+            //Se não for válido e já obteve algum conteúdo válido finaliza palavra
+                if ( ((frase[i] >= 'A' && frase[i] <= 'z') || (frase[i] >= '0' && frase[i] <= '9')) ){
+                    palavraretorno[indice] = frase[i];
+                    indice++;
+                }else if(indice > 0){
+                    break;
+                }
         }
 
-    // Le cada palavra constante na linha
-		inicioLeitura = 8;
-		fimLeitura = strlen(linha);
+        // Verifica se encontrou alguma palavra
+            if(indice == 0){
+                return NULL;
+            }
 
-		palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
-		while(palavra != NULL)
-		{
-            inserirArvoreBinaria(no, palavra);
+        // Deve ter no mínimo 3 caracteres para considerar como palavra. Se não for o caso, tenta novamente.
+            /* if(indice < 3){
+                return extrairPalavra(&i, &*posicaoFinal, frase);
+            } */
 
-			inicioLeitura = fimLeitura;
-			fimLeitura = strlen(linha);
+            palavraretorno[indice] = '\0';
 
-			free(palavra);
-			palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
-		}
+        // Atualiza até onde fez a leitura
+            *posicaoFinal = i;	
 
-    return true;
-}
-// ---------------------------------------
+        return palavraretorno;
+    }
+
+    bool carregarTermos(char *linha, PtrNoArvore *no){
+    
+        int inicioLeitura, fimLeitura;
+        char* palavra;
+
+        //Verifica se a linha está no padrão esperado.
+            inicioLeitura = 1;
+            fimLeitura = 7;
+            palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
+
+            if( linha[0] != '<' || 
+                linha[strlen(linha)-1] != '>' ||
+                strcmp(palavra, "termos") != 0){
+
+                printf("Erro: Estrutura do arquivo inconsistente\n");
+                return false;
+            }
+
+        // Le cada palavra constante na linha
+            inicioLeitura = 8;
+            fimLeitura = strlen(linha);
+
+            palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
+            while(palavra != NULL)
+            {
+                inserirArvoreBinaria(no, palavra);
+
+                inicioLeitura = fimLeitura;
+                fimLeitura = strlen(linha);
+
+                free(palavra);
+                palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
+            }
+
+        return true;
+    }
+
+    bool lerlinha(char *linha, PtrNoArvore *no, int *pagina){
+    
+        int inicioLeitura, fimLeitura, indice;
+        char* palavra;
+        bool existe;
+        PtrNoArvore termo;
+
+        // Le cada palavra constante na linha
+            inicioLeitura = 0;
+            fimLeitura = strlen(linha);
+
+            palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
+
+            //Verifica se é nova página
+                if( linha[0] == '<' && 
+                    linha[strlen(linha)-1] == '>' &&
+                    strcmp(palavra, "page") == 0){
+
+                    free(palavra);
+                    inicioLeitura = fimLeitura;
+                    fimLeitura = strlen(linha);
+                    palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
+
+                    *pagina = atoi(palavra);
+                    return(true);
+                }
+
+            while(palavra != NULL)
+            {
+                // Verifica se é um termo
+                    termo = pesquisaArvoreBinaria(no, palavra);
+
+                    if (termo != NULL){
+                        //Verifica se a página já consta nas ocorrencias, se não, então inclui
+                        indice = 0;
+                        existe = false;
+
+                        while(termo->ocorrencias[indice] != 0 && indice < 98){
+                            if(termo->ocorrencias[indice] == *pagina){
+                                existe = true;
+                                break;
+                            }
+                            indice++;
+                        }
+
+                        if (!existe){
+                            termo->ocorrencias[indice] = *pagina;
+                            termo->ocorrencias[indice+1] = 0;
+                        }
+
+                    }
+
+                inicioLeitura = fimLeitura;
+                fimLeitura = strlen(linha);
+
+                free(palavra);
+                palavra = extrairPalavra(&inicioLeitura, &fimLeitura, linha);
+            }
+
+        return true;
+    }
+
+//----------------------------
 
 int main(int argc, const char *argv[])
 {
@@ -236,47 +234,42 @@ int main(int argc, const char *argv[])
         if (argc != 3)
         {
             printf("Erro: Quantidade de parametros invalida\n");
-            //return 0;
+            return(EXIT_FAILURE);
         }
 
     // Abre os arquivos.
-        //FILE *arquivoLeitura = fopen(argv[1], "r");
-        //FILE *arquivoEscrita = fopen(argv[2], "w");
-        FILE *arquivoLeitura = fopen("C:\\teste\\entrada1.txt", "r");
-        FILE *arquivoEscrita = fopen("C:\\teste\\saida1.txt", "w");
+        FILE *arquivoLeitura = fopen(argv[1], "r");
+        FILE *arquivoEscrita = fopen(argv[2], "w");
+
         if (arquivoLeitura == NULL)
         {
             printf("Erro: Falha ao abrir o arquivo para leitura!\n");
-            return 0;
+            return(EXIT_FAILURE);
         }
 
         if (arquivoEscrita == NULL)
         {
             printf("Erro: Falha ao abrir arquivo para escrita!\n");
-            return 0;
+            return(EXIT_FAILURE);
         }
-        printf("Log: Arquivos abertos.\n\n");
+        printf("Log: Arquivos abertos.\n");
 
     // Inicializa pilha.
-    PtrNoArvore raiz;
-    iniciaArvoreBinaria(&raiz);
-
-// inserirArvoreBinaria(&raiz, "celula");
-// inserirArvoreBinaria(&raiz, "arvores");
-// inserirArvoreBinaria(&raiz, "chave");
-// inserirArvoreBinaria(&raiz, "busca");
+        PtrNoArvore raiz;
+        iniciaArvoreBinaria(&raiz);
 
     // le o conteudo
         char linha[2000];
         bool arquivoValido = true;
-        int  contlinhas = 0;
+        int  pagina = 0, contlinhas = 0;
+        
+        printf("Log: Lendo arquivo\n");
 
         while (!feof(arquivoLeitura)){
 
             contlinhas++;
 
             fscanf(arquivoLeitura, " %[^\n]s", linha);
-            printf("Log: %s \n", linha);
 
             if (contlinhas == 1){
 
@@ -286,55 +279,25 @@ int main(int argc, const char *argv[])
                 }
 
             }else{
-
+                lerlinha(linha, &raiz, &pagina);
             }
 
         }
 
-        if (!arquivoValido){
-            destruirArvoreBinaria(&raiz);
+    //Se conseguiu ler o arquivo gera a impressão
+        if (arquivoValido){
+            EmOrdemArvoreBinaria(&raiz, arquivoEscrita);
+        }else{
+            fprintf(arquivoEscrita, "%s", "Arquivo inválido!");
         }
-    //  char *inserir = "caderno";
 
-    PreOrdemPrincipal(&raiz);
-    EmOrdemPrincipal(&raiz);
+    //Libera memória utilizada    
+        destruirArvoreBinaria(&raiz);
 
     // Fecha os arquivos
         fclose(arquivoLeitura);
         fclose(arquivoEscrita);
         printf("\nLog: Arquivos fechados!\n");
 
-    return 0;
+    return(EXIT_SUCCESS);
 }
-
-
-	// int Contlinha = 0;
-	// int inicioLinha = 0;
-	// int fimLinha = 0;
-	// char linha[5000];
-	// char* palavra;
-
-	// FILE* arq = fopen(texto, "rt");
-
-	// while(fgets(linha, 5000, arq) != NULL)
-	// {
-	// 	Contlinha++;
-
-	// 	inicioLinha = 0;
-	// 	fimLinha = strlen(linha);
-
-	// 	palavra = buscaPalavra(&inicioLinha, &fimLinha, linha);
-	// 	while(palavra != NULL)
-	// 	{
-	// 		inicioLinha = fimLinha;
-	// 		fimLinha = strlen(linha);
-
-	// 		/*Realiza a filtragem da palavra*/
-	// 		filtragemPalavras(palavra);
-
-	// 		insereOcorrenciaArvBin(arv, palavra, Contlinha);
-
-	// 		free(palavra);
-	// 		palavra = buscaPalavra(&inicioLinha, &fimLinha, linha);
-	// 	}
-	// }
