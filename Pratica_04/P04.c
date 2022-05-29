@@ -2,13 +2,21 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 
 // Definição das estruturas
+    typedef struct NoLista* PtrNoLista;
+
+    struct NoLista {
+        int elemento;
+        PtrNoLista proximo;
+    } NoLista;
+
     typedef struct NoArvore *PtrNoArvore;
 
     typedef struct NoArvore {
         char *chave;
-        int ocorrencias[100];
+        PtrNoLista ocorrencias;
         PtrNoArvore direita;
         PtrNoArvore esquerda;
     } NoArvore;
@@ -20,17 +28,13 @@
         (*r) = NULL;
     }
 
-    bool estaVaziaArvoreBinaria(PtrNoArvore *r){
-        return ((*r) == NULL);
-    }
-
     bool inserirArvoreBinaria(PtrNoArvore *no, char *valor){
 
         if ((*no) == NULL){
             (*no) = malloc(sizeof(NoArvore));
             (*no)->chave = (char*) malloc(sizeof(char)*strlen(valor));
             strcpy((*no)->chave, valor);
-            (*no)->ocorrencias[0]=0;
+            (*no)->ocorrencias = NULL;
             (*no)->direita = NULL;
             (*no)->esquerda = NULL;
             return (true);
@@ -45,6 +49,38 @@
         }
     }
 
+    void inserirOcorrencia(PtrNoArvore *termo, int valor){
+         PtrNoLista aux = (*termo)->ocorrencias;
+
+         if(aux == NULL){
+            //Insere uma nova ocorrencia e coloca na lista
+                PtrNoLista novo = (PtrNoLista) malloc(sizeof(PtrNoLista));
+                novo->elemento = valor;
+                novo->proximo = NULL;
+                (*termo)->ocorrencias = novo;
+
+         }else{
+             //Verifica se a ocorrencia já está listada
+                do{
+                    if(aux->elemento == valor){
+                        return;
+                    }
+
+                    if(aux->proximo == NULL){
+                        break;
+                    }else{
+                        aux = aux->proximo;
+                    }
+
+                }while(true);
+
+                PtrNoLista novo = (PtrNoLista) malloc(sizeof(PtrNoLista));
+                novo->elemento = valor;
+                novo->proximo = NULL;
+                aux->proximo = novo;
+         }
+    }
+
     void EmOrdemArvoreBinaria(PtrNoArvore *no, FILE *arq){
 
         if ((*no) == NULL){
@@ -53,15 +89,19 @@
 
         EmOrdemArvoreBinaria(&(*no)->esquerda, arq);
 
-        printf("%s", (*no)->chave);
-        fprintf(arq, "%s", (*no)->chave);
+        //Imprime o termo
+            printf("%s", (*no)->chave);
+            fprintf(arq, "%s", (*no)->chave);
 
-        int i = 0;
-        while((*no)->ocorrencias[i] != 0){
-            printf(",%d", (*no)->ocorrencias[i]);
-            fprintf(arq, ",%d", (*no)->ocorrencias[i]);
-            i++;
-        }
+        //Imprime as ocorrencias
+            PtrNoLista aux;
+            for(aux = (*no)->ocorrencias; aux != NULL; aux = aux->proximo){
+                //     - elemento
+                //     - imprime o numero dele
+                printf(",%d", aux->elemento);
+                fprintf(arq, ",%d", aux->elemento);
+            }
+
         printf("\n");
         fprintf(arq, "\n");
 
@@ -84,12 +124,25 @@
     }
 
     void destruirArvoreBinaria(PtrNoArvore *no){
-
         if((*no) != NULL){
             destruirArvoreBinaria(&(*no)->esquerda);
             destruirArvoreBinaria(&(*no)->direita);
             free((*no));
         }
+    }
+
+    bool letraAcentuada(char letra){
+        //Código ficou feio,mas não encontrei forma melhor de validar
+        char *letras = "ÁÉÍÓÚáéíóúÂÊÔâêôÀàÜüÇçÑñÃÕãõ";
+        int i;
+
+        for(i = 0; i < strlen(letras); i++){
+            if (letra == letras[i]){
+                return(true);
+            }
+        }
+
+        return(false);
     }
 
     char* extrairPalavra(int *posicaoInicial, int *posicaoFinal, char* frase){
@@ -101,7 +154,10 @@
 
             //Verifica se o caractere é valido A-Z ou 0-9
             //Se não for válido e já obteve algum conteúdo válido finaliza palavra
-                if ( ((frase[i] >= 'A' && frase[i] <= 'z') || (frase[i] >= '0' && frase[i] <= '9')) ){
+                if ( (frase[i] >= 'A' && frase[i] <= 'z') || 
+                     (frase[i] >= '0' && frase[i] <= '9') ||
+                     letraAcentuada(frase[i])){
+
                     palavraretorno[indice] = frase[i];
                     indice++;
                 }else if(indice > 0){
@@ -115,6 +171,11 @@
             }
 
             palavraretorno[indice] = '\0';
+        
+        // Converte a palavra para letras minusculas
+            for(int i = 0; palavraretorno[i]; i++){
+                palavraretorno[i] = tolower(palavraretorno[i]);
+            }
 
         // Atualiza até onde fez a leitura
             *posicaoFinal = i;	
@@ -192,23 +253,7 @@
                     termo = pesquisaArvoreBinaria(no, palavra);
 
                     if (termo != NULL){
-                        //Verifica se a página já consta nas ocorrencias, se não, então inclui
-                        indice = 0;
-                        existe = false;
-
-                        while(termo->ocorrencias[indice] != 0 && indice < 98){
-                            if(termo->ocorrencias[indice] == *pagina){
-                                existe = true;
-                                break;
-                            }
-                            indice++;
-                        }
-
-                        if (!existe){
-                            termo->ocorrencias[indice] = *pagina;
-                            termo->ocorrencias[indice+1] = 0;
-                        }
-
+                        inserirOcorrencia(&termo, *pagina);
                     }
 
                 inicioLeitura = fimLeitura;
@@ -229,12 +274,14 @@ int main(int argc, const char *argv[])
         if (argc != 3)
         {
             printf("Erro: Quantidade de parametros invalida\n");
-            return(EXIT_FAILURE);
+           // return(EXIT_FAILURE);
         }
 
     // Abre os arquivos.
         FILE *arquivoLeitura = fopen(argv[1], "r");
         FILE *arquivoEscrita = fopen(argv[2], "w");
+        //FILE *arquivoLeitura = fopen("C:\\teste\\entrada5.txt", "r");
+        //FILE *arquivoEscrita = fopen("C:\\teste\\sasaida5.txt", "w");
 
         if (arquivoLeitura == NULL)
         {
@@ -265,6 +312,7 @@ int main(int argc, const char *argv[])
             contlinhas++;
 
             fscanf(arquivoLeitura, " %[^\n]s", linha);
+            printf("%s\n",linha);
 
             if (contlinhas == 1){
 
@@ -283,6 +331,7 @@ int main(int argc, const char *argv[])
         if (arquivoValido){
             EmOrdemArvoreBinaria(&raiz, arquivoEscrita);
         }else{
+            printf("Log: Arquivo inválido\n");
             fprintf(arquivoEscrita, "%s", "Arquivo inválido!");
         }
 
@@ -292,7 +341,7 @@ int main(int argc, const char *argv[])
     // Fecha os arquivos
         fclose(arquivoLeitura);
         fclose(arquivoEscrita);
-        printf("\nLog: Arquivos fechados!\n");
+        printf("Log: Arquivos fechados!\n");
 
     return(EXIT_SUCCESS);
 }
