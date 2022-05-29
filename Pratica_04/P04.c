@@ -114,11 +114,6 @@
                 return NULL;
             }
 
-        // Deve ter no mínimo 3 caracteres para considerar como palavra. Se não for o caso, tenta novamente.
-            /* if(indice < 3){
-                return extrairPalavra(&i, &*posicaoFinal, frase);
-            } */
-
             palavraretorno[indice] = '\0';
 
         // Atualiza até onde fez a leitura
